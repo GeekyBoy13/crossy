@@ -83,6 +83,47 @@ class Road2(pygame.sprite.Sprite):
         self.image.set_colorkey(WHITE) 
         self.rect = self.image.get_rect()
 
+class River(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+
+        self.image = pygame.transform.scale(pygame.image.load('river.jpg'), (700, 60))
+        self.image.set_colorkey(WHITE) 
+        self.rect = self.image.get_rect()
+
+class River2(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+
+        self.image = pygame.transform.scale(pygame.image.load('river.jpg'), (700, 60))
+        self.image.set_colorkey(WHITE) 
+        self.rect = self.image.get_rect()
+
+class Log(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+
+        self.image = pygame.transform.scale(pygame.image.load('log.png'), (100, 50))
+        self.velocity = 3
+        self.image.set_colorkey(WHITE) 
+        self.rect = self.image.get_rect()
+
+    def update(self):
+        self.rect.x-=self.velocity
+
+class Log2(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+
+        self.image = pygame.transform.scale(pygame.image.load('log.png'), (100, 50))
+        self.velocity = 3
+        self.image.set_colorkey(WHITE) 
+        self.rect = self.image.get_rect()
+
+    def update(self):
+        self.rect.x+=self.velocity
+
+
 class Grass(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
@@ -93,10 +134,14 @@ class Grass(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
 
 font = pygame.font.Font('mariofont.ttf', 30)
+logs = pygame.sprite.Group()
+rivers = pygame.sprite.Group()
 rads = pygame.sprite.Group()
 cars = pygame.sprite.Group()
 CREATECAR = pygame.USEREVENT + 2
-pygame.time.set_timer(CREATECAR, 2500)
+pygame.time.set_timer(CREATECAR, 3000)
+CREATELOG = pygame.USEREVENT + 3
+pygame.time.set_timer(CREATELOG, 2000)
 new = 540
 jump = 0
 score = 0
@@ -124,8 +169,8 @@ while carryOn:
                 score -= 1
                 new -= 60
         if event.type==CREATEROAD:
-            randy = randint(0,3)
-            if randy<3:
+            randy = randint(0,10)
+            if randy<8:
                 rando = randint(0, 1)
                 if rando == 0:
                     new_road = Road()
@@ -135,12 +180,26 @@ while carryOn:
                 roads.add(new_road)
                 rads.add(new_road)
                 new_road.rect.y = new
-                new = new - 60
-            else:
+                new -=60
+            elif randy < 10 and randy > 7:
                 new_grass = Grass()
                 roads.add(new_grass)
                 new_grass.rect.y = new
-                new = new - 60
+                new -=60
+            elif randy == 10:
+                rando = randint(0,1)
+                if rando == 0:
+                    new_river = River()
+                    roads.add(new_river)
+                    rads.add(new_river)
+                    rivers.add(new_river)
+                elif rando == 1:
+                    new_river = River2()
+                    roads.add(new_river)
+                    rads.add(new_river)
+                    rivers.add(new_river)
+                new_river.rect.y =new
+                new-=60
             if new <= -10000:
                 pygame.time.set_timer(CREATEROAD, 0)
             elif new>-10000:
@@ -152,15 +211,37 @@ while carryOn:
                         new_car = Car2()
                         new_car.velocity = sprite.velocity
                         new_car.rect.right = -1 * randint(50, 275)
+                        new_car.rect.top = sprite.rect.top + 5
+                        cars.add(new_car)
                     elif isinstance(sprite, Road2):
                         new_car = Car()
                         new_car.velocity = sprite.velocity
-                        new_car.rect.left = randint(750, 975) 
-                    new_car.rect.top = sprite.rect.top + 5
-                    cars.add(new_car)
+                        new_car.rect.left = randint(750, 975)
+                        new_car.rect.top = sprite.rect.top + 5
+                        cars.add(new_car)
+        if event.type==CREATELOG:
+            for sprite in rivers:
+                if sprite.rect.bottom > -400 and sprite.rect.top<600:
+                    if isinstance(sprite, River):
+                        new_log = Log2()
+                        new_log.rect.right = -1 * randint(50, 275)
+                        logs.add(new_log)
+                        new_log.rect.top = sprite.rect.top + 5
+                    elif isinstance(sprite, River2):
+                        new_log = Log()
+                        new_log.rect.left = randint(750, 975)
+                        logs.add(new_log)
+                        new_log.rect.top = sprite.rect.top + 5
     if pygame.sprite.spritecollideany(player, cars):
         carryOn = False
-    if player.rect.top > 600:
+    if player.rect.top > 600 or player.rect.bottom <= 0:
+        carryOn = False
+    if pygame.sprite.spritecollideany(player, logs):
+        if isinstance(pygame.sprite.spritecollide(player, logs, False)[0], Log):  
+            player.rect.x -= 3
+        else:
+            player.rect.x += 3
+    if pygame.sprite.spritecollideany(player, rivers) and not pygame.sprite.spritecollideany(player, logs):
         carryOn = False
     if keys[pygame.K_RIGHT]:
         player.Right()
@@ -173,6 +254,10 @@ while carryOn:
     player.rect.y+=2
     screen.fill(WHITE)
     for sprite in roads:
+        screen.blit(sprite.image, sprite.rect)
+    for sprite in logs:
+        sprite.rect.y+=2
+        sprite.update()
         screen.blit(sprite.image, sprite.rect)
     screen.blit(player.image, player.rect)
     for sprite in cars:
