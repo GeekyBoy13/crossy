@@ -133,16 +133,41 @@ class Grass(pygame.sprite.Sprite):
         self.image.set_colorkey(WHITE) 
         self.rect = self.image.get_rect()
 
+class Track(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+
+        self.image = pygame.transform.scale(pygame.image.load('go.png'), (700, 60))
+
+        self.image.set_colorkey(WHITE)
+        self.rect = self.image.get_rect()
+
+class Train(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+
+        self.image = pygame.transform.scale(pygame.image.load('train.png'), (1000, 40))
+        self.velocity = 33
+        self.image.set_colorkey(WHITE)
+        self.rect = self.image.get_rect()
+        self.track  =None
+    def update(self):
+        self.rect.x -= self.velocity
+
 font = pygame.font.Font('mariofont.ttf', 30)
 logs = pygame.sprite.Group()
+tracks = pygame.sprite.Group()
+trains = pygame.sprite.Group()
 rivers = pygame.sprite.Group()
 rads = pygame.sprite.Group()
 cars = pygame.sprite.Group()
+CREATETRAIN = pygame.USEREVENT + 4
+pygame.time.set_timer(CREATETRAIN, 5000)
 CREATECAR = pygame.USEREVENT + 2
 pygame.time.set_timer(CREATECAR, 3000)
 CREATELOG = pygame.USEREVENT + 3
 pygame.time.set_timer(CREATELOG, 2000)
-new = 540
+new = 200
 jump = 0
 score = 0
 roads = pygame.sprite.Group()
@@ -169,7 +194,7 @@ while carryOn:
                 score -= 1
                 new -= 60
         if event.type==CREATEROAD:
-            randy = randint(0,10)
+            randy = randint(0,11)
             if randy<8:
                 rando = randint(0, 1)
                 if rando == 0:
@@ -191,7 +216,6 @@ while carryOn:
                 if rando == 0:
                     new_river = River()
                     roads.add(new_river)
-                    rads.add(new_river)
                     rivers.add(new_river)
                 elif rando == 1:
                     new_river = River2()
@@ -200,10 +224,14 @@ while carryOn:
                     rivers.add(new_river)
                 new_river.rect.y =new
                 new-=60
+            elif randy == 11:
+                new_track = Track()
+                roads.add(new_track)
+                tracks.add(new_track)
+                new_track.rect.y = new
+                new-=60
             if new <= -10000:
                 pygame.time.set_timer(CREATEROAD, 0)
-            elif new>-10000:
-                pygame.time.set_timer(CREATEROAD, 10)
         if event.type==CREATECAR:
             for sprite in rads:
                 if sprite.rect.bottom > -300 and sprite.rect.top < 600:
@@ -232,6 +260,16 @@ while carryOn:
                         new_log.rect.left = randint(750, 975)
                         logs.add(new_log)
                         new_log.rect.top = sprite.rect.top + 5
+        if event.type==CREATETRAIN:
+            for sprite in tracks:
+                if sprite.rect.bottom > -400 and sprite.rect.top<600:
+                    sprite.image = pygame.transform.scale(pygame.image.load('stop.png'), (700, 60))
+                    new_train = Train()
+                    new_train.rect.left = randint(1000, 2000)
+                    cars.add(new_train)
+                    trains.add(new_train)
+                    new_train.track = sprite
+                    new_train.rect.top = sprite.rect.top 
     if pygame.sprite.spritecollideany(player, cars):
         carryOn = False
     if player.rect.top > 600 or player.rect.bottom <= 0:
@@ -264,10 +302,16 @@ while carryOn:
         sprite.rect.y+=2
         sprite.update()
         screen.blit(sprite.image, sprite.rect)
+    for sprite in trains:
+        if sprite.rect.right < 0:
+            sprite.track.image  =pygame.transform.scale(pygame.image.load('go.png'), (700, 60))
+            sprite.kill()
     text = font.render(str(score), True, BLACK)
     textrect = text.get_rect()
     screen.blit(text, textrect)
     pygame.display.update()
+    if "trains.sprites()[0]" in globals():
+        print(trains.sprites()[0].rect.x)
     clock.tick(30)
 time.sleep(0.5)
 now = datetime.datetime.now()
@@ -288,4 +332,3 @@ while True:
         break
     pygame.display.update()
 pygame.quit()
-                
