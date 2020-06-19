@@ -6,7 +6,7 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 size = (700, 600)
 screen =  pygame.display.set_mode(size)
-pygame.display.set_caption("Crossy")
+pygame.display.set_caption("Crossy Road")
 pygame.init()
 
 class Player(pygame.sprite.Sprite):
@@ -154,6 +154,8 @@ class Train(pygame.sprite.Sprite):
     def update(self):
         self.rect.x -= self.velocity
 
+pygame.mixer.music.load('music.wav')
+pygame.mixer.music.play(loops=-1)
 font = pygame.font.Font('mariofont.ttf', 30)
 logs = pygame.sprite.Group()
 tracks = pygame.sprite.Group()
@@ -310,9 +312,8 @@ while carryOn:
     textrect = text.get_rect()
     screen.blit(text, textrect)
     pygame.display.update()
-    if "trains.sprites()[0]" in globals():
-        print(trains.sprites()[0].rect.x)
     clock.tick(30)
+pygame.mixer.music.fadeout(3500)
 time.sleep(0.5)
 now = datetime.datetime.now()
 while True:
@@ -331,4 +332,5 @@ while True:
     if (newnow - now).seconds >= 3:
         break
     pygame.display.update()
+pygame.mixer.music.stop()
 pygame.quit()
