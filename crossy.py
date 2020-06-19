@@ -154,7 +154,7 @@ class Train(pygame.sprite.Sprite):
     def update(self):
         self.rect.x -= self.velocity
 
-pygame.mixer.music.load('music.wav')
+pygame.mixer.music.load('music.mp3')
 pygame.mixer.music.play(loops=-1)
 font = pygame.font.Font('mariofont.ttf', 30)
 logs = pygame.sprite.Group()
