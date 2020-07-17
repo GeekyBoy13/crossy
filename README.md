@@ -1,1 +1,1 @@
-A basic crossy road game with cars and trucks
+A basic crossy road game with cars, trucks, logs, and trains.
